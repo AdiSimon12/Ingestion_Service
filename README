@@ -1,0 +1,175 @@
+# Ingestion & Normalization Service
+
+## Project Overview
+This repository contains an academic implementation of the **Ingestion & Normalization Service**,
+a core module of the project:
+
+Automatic Misconfiguration & Threat Detection System for Public Cloud Storage
+
+The project was developed as part of the Methods in Software Engineering course and focuses on
+demonstrating a correct and traceable transition from requirements and architectural design
+(SRS & SDD) to a concrete, executable software module.
+
+This service represents the system’s entry point for processing security-related cloud events
+originating from multiple public cloud providers.
+
+---
+
+## Implemented Scope
+The implementation covers the following functionality, as defined in the approved
+Low-Level Design (LLD):
+
+- REST API endpoint for ingesting cloud events:
+  - POST /ingest/{provider} where {provider} ∈ {aws, azure, gcp}
+- Structural validation of incoming JSON payloads
+- Provider-aware normalization using lookup-table–based mappings
+- Transformation into a unified internal schema
+- Metadata enrichment:
+  - System-generated UUID
+  - Normalized UTC timestamp
+- Publishing of normalized events to a mock event-driven pipeline
+- Error handling and isolation of failed events via a Dead Letter Queue (DLQ) simulation
+- Local execution and validation using simulated cloud events
+
+---
+
+## Out of Scope
+The following components are intentionally not implemented, as they are outside the
+approved Low-Level Design scope for this phase of the project:
+
+- Real cloud provider API integrations
+- Behavioral analytics and anomaly detection
+- Correlation and risk scoring engines
+- Alerting mechanisms
+- User interface or dashboard
+- Authentication and authorization mechanisms
+
+This strict scoping ensures full alignment with the module boundaries defined in the SDD.
+
+---
+
+## Project Structure
+
+    ingestion-service/
+    ├── app/
+    │   ├── main.py            # API entry point and error handling
+    │   ├── models.py          # Unified internal schema
+    │   ├── validators.py      # Payload validation logic
+    │   ├── mappings.py        # Provider-specific lookup tables
+    │   ├── normalizer.py      # Normalization and enrichment logic
+    │   └── publisher.py       # Mock event bus & DLQ publisher
+    │
+    ├── mock_events/           # Simulated cloud events (JSON)
+    ├── tests/                 # Unit tests
+    ├── requirements.txt
+    └── README.md
+
+---
+
+## Installation
+
+### Prerequisites
+- Python 3.10 or higher
+- pip (Python package installer)
+
+### Setup
+Install the required dependencies:
+
+    pip install -r requirements.txt
+
+---
+
+## Running the Service
+Start the service locally with:
+
+    uvicorn app.main:app --reload
+
+The API will be available at:
+
+    http://localhost:8000
+
+A basic health check endpoint is available at:
+
+    GET /health
+
+---
+
+## Example Usage
+
+### Ingesting a Cloud Event
+The service accepts raw cloud events as JSON payloads.
+
+Example (AWS event simulation):
+
+    curl -X POST http://localhost:8000/ingest/aws \
+         -H "Content-Type: application/json" \
+         -d @mock_events/aws_event.json
+
+If the request is valid:
+- The payload is normalized into the unified internal schema
+- A normalized event is published to the mock event bus
+- The normalized event is returned in the API response
+
+---
+
+## Mock Event Bus
+Successfully normalized events are persisted locally under:
+
+    published_events/
+
+Each event is stored as a JSON file named by its generated UUID.
+
+This mechanism simulates an event-driven architecture and serves as a
+stand-in for a real message broker (e.g., Kafka or RabbitMQ), while
+preserving traceability and auditability.
+
+---
+
+## Dead Letter Queue (DLQ) – Error Handling
+In accordance with the Low-Level Design, the service implements a Dead Letter Queue (DLQ)
+mechanism for handling events that fail validation or normalization.
+
+### Behavior
+- If an incoming event fails structural validation or normalization:
+  - The event is not published to the event bus
+  - The error is isolated and handled without interrupting the ingestion flow
+  - An HTTP 422 Unprocessable Entity response is returned
+
+### DLQ Simulation
+Failed events are persisted locally under:
+
+    failed_events/
+
+Each DLQ entry contains:
+- A generated DLQ identifier
+- Timestamp of failure
+- Original raw payload
+- Error context
+
+Note:
+In the design documents, the DLQ is described as being stored in a separate database.
+In this academic implementation, the DLQ is simulated via local filesystem persistence,
+serving as a stand-in for a database or message queue.
+This approach preserves the architectural intent while avoiding external infrastructure
+dependencies.
+
+---
+
+## Validation and Testing
+The service is validated through:
+
+- Local execution in a controlled environment
+- Simulated cloud event payloads
+- Unit tests for normalization logic (under tests/)
+- Explicit testing of error-handling and DLQ behavior
+
+This validation strategy aligns with the documented validation plan and demonstrates
+compliance with both functional and non-functional requirements under simulated
+production-like conditions.
+
+---
+
+## Notes
+This repository is intended for academic demonstration purposes only.
+It is not a production-ready security system and omits scalability, security hardening,
+and operational concerns that would be required in a real-world deployment.
