@@ -1,0 +1,7 @@
+{
+  "operationName": "Microsoft.Storage/storageAccounts/blobServices/containers/read",
+  "time": "2026-01-15T11:12:30Z",
+  "resourceId": "/subscriptions/12345678/resourceGroups/example-rg/providers/Microsoft.Storage/storageAccounts/examplestorage",
+  "caller": "user@example.com",
+  "category": "StorageRead"
+}

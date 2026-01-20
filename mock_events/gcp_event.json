@@ -1,0 +1,11 @@
+{
+  "protoPayload": {
+    "methodName": "storage.objects.get",
+    "resourceName": "projects/_/buckets/example-bucket/objects/sample-object.txt",
+    "authenticationInfo": {
+      "principalEmail": "user@example.iam.gserviceaccount.com"
+    }
+  },
+  "timestamp": "2026-01-15T12:05:10Z",
+  "severity": "INFO"
+}
